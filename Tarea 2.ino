@@ -7,14 +7,16 @@
 uint8_t track_num = 0;
 uint8_t last_track = 0;
 uint32_t t_pos = 0;
-const int chipSelect = 9;
-SdFat sd;									
-SFEMP3Shield MP3;	
+uint8_t orden = 0;
+
+SdFat sd;	
+const int chipSelect = 9;								
+SFEMP3Shield MP3player;	
 
 void setup(){
 	Serial.begin(115200);
 	sd.begin(chipSelect,SPI_HALF_SPEED);	
-	MP3.begin();
+	MP3player.begin();
 	String artista = "";
 }
 
@@ -22,12 +24,12 @@ void setup(){
 
 String preguntar_artista(){
 	Serial.println("Cual de los siguientes artistas desea escuchar?");
-	Serial.println("tpain");
-	Serial.println("neyo");
 	Serial.println("50cent");
-	Serial.println("si desea cambiar el artista escriba (parar) en cualquier momento")
+	Serial.println("Akon");
+	Serial.println("Nelly");
+	Serial.println("si desea cambiar el artista escriba (parar) en cualquier momento");
 	String artista = "";
-	while(artista = ""){
+	while(artista == ""){
     artista = leer_respuesta();// statement
 }
 return artista;
@@ -49,35 +51,44 @@ boolean rep_aleatoria(){
 	Serial.println("Desea una reproduccion aleatoria (si/no)");
 	bool aleatorio = false;
 	String respuesta = "";
-	while(respuesta = ""){
+	while(respuesta == ""){
 		respuesta = leer_respuesta();
 	}
 	if(respuesta == "si"){
 		aleatorio = true;
 	}
-	else{
+	else if (respuesta == "no"){
 		aleatorio = false;
 	}
 	return aleatorio;
 }
 
 
-String orden_usuario(orden){
+String orden_usuario(uint8_t orden,String artista){
+	
 switch (orden) {
     case 1:
       artista = "";// do something
       break;
 
     case 2:
+      MP3player.pauseMusic();// do something
+      break;
+
+    case 3:
       t_pos = MP3player.currentPosition();	//guarda la posicion actual
-      MP3player.Track();// do something
+      MP3player.stopTrack();// do something
+      break;
+
+     case 4:
+      MP3player.resumeMusic();// do something
       break;
 
 }
 }
 
 
-void canciones_artista(){
+void canciones_artista(String artista){
 	Serial.print('\n');
 	Serial.println("Las canciones disponibles del artista seleccionado son: ");
     Serial.print('\n');
@@ -85,117 +96,111 @@ void canciones_artista(){
 	    Serial.println("track 1");
 	    Serial.println("track 2");
 	    Serial.println("track 3");
-	    Serial.println("track 4");
-	    Serial.println("track 5");
+	   
 	}
 
-	if(artista == "neyo"){
+	if(artista == "akon"){
+	    Serial.println("track 4");
+	    Serial.println("track 5");
 	    Serial.println("track 6");
+	  
+	}
+
+	if(artista == "nelly"){
 	    Serial.println("track 7");
 	    Serial.println("track 8");
 	    Serial.println("track 9");
-	    Serial.println("track 10");
-	}
-
-	if(artista == "tpain"){
-	    Serial.println("track 11");
-	    Serial.println("track 12");
-	    Serial.println("track 13");
-	    Serial.println("track 14");
-	    Serial.println("track 15");
+	   
 	}
 }
 
+bool verificar_artista(String artista,uint8_t last_track){
 
-void loop(){
+bool coincide = false;
+while(coincide == false){
+	randomSeed(millis());
+	track_num = random(1,9);
 
-
-	while(artista = ""){
-	 	preguntar_artista();   // statement
-	 }
-
-	 canciones_artista();
-	 rep_aleatoria();
-
-
-	 if(artista == "50cent" && aleatorio == true){
-	 	track_num = random(1,5); 
-	 }	
-
-	 if (track_num != last_track && aleatorio == true){
-	 	last_track = track_num;
-	 	MP3player.playTrack(track_num);	
-	 }
-
-	 else if(artista == "50cent" && aleatorio == false){
-	 	track_num = 0;
-	 	track_num = track_num + 1;;
-	 	MP3player.playTrack(track_num);
-	 }
-
-
-	 if(artista == "tpain" && aleatorio == true){
-	 	track_num = random(6,10); 
-	 }	
-
-	 if (track_num != last_track && aleatorio == true){
-	 	last_track = track_num;
-	 	MP3player.playTrack(track_num);	
-	 }
-
-	 else if(artista == "tpain" && aleatorio == false){
-	 	track_num = 5;
-	 	track_num = track_num + 1;;
-	 	MP3player.playTrack(track_num);
-	 }
-
-
-	 if(artista == "neyo" && aleatorio == true){
-	 	track_num = random(6,10); 
-	 }	
-
-	 if (track_num != last_track && aleatorio == true){
-	 	last_track = track_num;
-	 	MP3player.playTrack(track_num);	
-	 }
-
-	 else if(artista == "neyo" && aleatorio == false){
-	 	track_num = 5;
-	 	track_num = track_num + 1;;
-	 	MP3player.playTrack(track_num);
-	 }
-
-	 if (Serial.available()){
-	    String ordenu = ""; // statement
-	    ordenu.concat(char(Serial.read()));                   // statement
-	    delay(10);
-	    uint8_t orden = 0;
-
-	    if(ordenu == "cambiar"){
-	    	orden = 1;
-	    }
-
-	    if(ordenu == "pusar"){
-	    	orden = 2;
-	    }
-
-	    if(ordenu == "parar"){
-	    	orden = 3;
-	    }
-
-	    if(ordenu == "parar"){
-	    	orden = 4;
-	    }
-
-	    if(ordenu == "parar"){
-	    	orden = 5;
-	    }
+	while(track_num == last_track){
+	    track_num = random(1,9);// statement
 	}
 
-	orden_usuario();
+	last_track = track_num;
+
+	char buffer[16];
+	MP3player.playTrack(track_num);
+    MP3player.trackArtist(buffer);
+    MP3player.stopTrack();
+
+    if(String (buffer) == artista){
+        coincide = true;
+    }
+}
+
+return coincide;
+return track_num;
 
 }
 
 
+
+void loop()
+{
+String artista = "";
+while(true){
+ 
+while(artista == ""){
+    artista = preguntar_artista();
+}
+
+bool rep = verificar_artista(artista,last_track);
+
+	while(rep == true){
+        MP3player.playTrack(track_num);
+        char buffer [16];
+        MP3player.trackTitle(buffer);
+        Serial.print("track ");
+        Serial.print(track_num);
+        Serial.print(":  ");
+        Serial.println(buffer);
+        last_track = track_num;
+
+	while(MP3player.isPlaying()){
+	    String ordenu = leer_respuesta();// statement
+
+	    if(ordenu == "cambiar artista"){
+	    	artista == "";
+	    	rep = false;
+	    	MP3player.stopTrack();
+	    }
+
+	    if(ordenu == "siguiente"){
+	    	rep = false;
+	    	MP3player.stopTrack(); 
+	    }
+
+        intervenir(ordenu);
+	}
+}
+}
+}
+
+
+
+void intervenir(String ordenu){
+
+	   
+	    if(ordenu == "pausar"){
+	    	MP3player.pauseMusic();
+	    }
+
+	    if(ordenu == "parar"){
+	    	MP3player.stopTrack();
+	    }
+
+	    if(ordenu == "continuar"){
+	    	MP3player.resumeMusic();
+	    }
+	}
 
 
