@@ -8,6 +8,8 @@ uint8_t track_num = 0;
 uint8_t last_track = 0;
 uint32_t t_pos = 0;
 uint8_t orden = 0;
+bool coincide = false;
+String artista = "";
 
 SdFat sd;	
 const int chipSelect = 9;								
@@ -17,7 +19,7 @@ void setup(){
 	Serial.begin(115200);
 	sd.begin(chipSelect,SPI_HALF_SPEED);	
 	MP3player.begin();
-	String artista = "";
+	
 }
 
 
@@ -28,7 +30,7 @@ String preguntar_artista(){
 	Serial.println("Akon");
 	Serial.println("Nelly");
 	Serial.println("si desea cambiar el artista escriba (parar) en cualquier momento");
-	String artista = "";
+	//String artista = "";
 	while(artista == ""){
     artista = leer_respuesta();// statement
 }
@@ -64,49 +66,25 @@ boolean rep_aleatoria(){
 }
 
 
-String orden_usuario(uint8_t orden,String artista){
-	
-switch (orden) {
-    case 1:
-      artista = "";// do something
-      break;
-
-    case 2:
-      MP3player.pauseMusic();// do something
-      break;
-
-    case 3:
-      t_pos = MP3player.currentPosition();	//guarda la posicion actual
-      MP3player.stopTrack();// do something
-      break;
-
-     case 4:
-      MP3player.resumeMusic();// do something
-      break;
-
-}
-}
-
-
-void canciones_artista(String artista){
+void canciones_artista(){
 	Serial.print('\n');
 	Serial.println("Las canciones disponibles del artista seleccionado son: ");
     Serial.print('\n');
-	if(artista == "50cent"){
+	if(artista == "50 Cent"){
 	    Serial.println("track 1");
 	    Serial.println("track 2");
 	    Serial.println("track 3");
 	   
 	}
 
-	if(artista == "akon"){
+	if(artista == "Akon"){
 	    Serial.println("track 4");
 	    Serial.println("track 5");
 	    Serial.println("track 6");
 	  
 	}
 
-	if(artista == "nelly"){
+	if(artista == "Nelly"){
 	    Serial.println("track 7");
 	    Serial.println("track 8");
 	    Serial.println("track 9");
@@ -114,80 +92,99 @@ void canciones_artista(String artista){
 	}
 }
 
-bool verificar_artista(String artista,uint8_t last_track){
+uint8_t verificar_artista(uint8_t last_track){
 
-bool coincide = false;
+bool rep = false;
+
+
+while(artista == ""){
+    artista = preguntar_artista();
+}
+
 while(coincide == false){
 	randomSeed(millis());
-	track_num = random(1,9);
+	track_num = random(1,8.99);
 
 	while(track_num == last_track){
-	    track_num = random(1,9);// statement
+	    track_num = random(1,8.99);// statement
 	}
-
-	last_track = track_num;
 
 	char buffer[16];
 	MP3player.playTrack(track_num);
     MP3player.trackArtist(buffer);
     MP3player.stopTrack();
 
-    if(String (buffer) == artista){
-        coincide = true;
+    if(String (buffer) == String (artista)){
+    	rep = true;
+        coincide = true; 
     }
 }
 
-return coincide;
-return track_num;
-
-}
-
-
-
-void loop()
-{
-String artista = "";
-while(true){
- 
-while(artista == ""){
-    artista = preguntar_artista();
-}
-
-bool rep = verificar_artista(artista,last_track);
-
 	while(rep == true){
         MP3player.playTrack(track_num);
+        canciones_artista();
         char buffer [16];
         MP3player.trackTitle(buffer);
         Serial.print("track ");
         Serial.print(track_num);
         Serial.print(":  ");
         Serial.println(buffer);
-        last_track = track_num;
+        
 
 	while(MP3player.isPlaying()){
 	    String ordenu = leer_respuesta();// statement
 
 	    if(ordenu == "cambiar artista"){
-	    	artista == "";
 	    	rep = false;
+	    	artista = "";
+	    	coincide = false;
 	    	MP3player.stopTrack();
 	    }
 
 	    if(ordenu == "siguiente"){
 	    	rep = false;
-	    	MP3player.stopTrack(); 
+	    	coincide = false;
+	    	last_track = track_num;
+	    	MP3player.stopTrack(); 	
+	    }
+        
+        if(ordenu == "pausar"){
+	    	MP3player.pauseMusic();
 	    }
 
-        intervenir(ordenu);
+	    if(ordenu == "parar"){
+	    	rep = false;
+	    	MP3player.stopTrack();
+	    }
+
+	    if(ordenu == "continuar"){
+	    	MP3player.resumeMusic();
+	    }
+
 	}
 }
+
 }
+
+
+
+//String artista = "";
+
+void loop()
+{
+ 
+
+
+verificar_artista(last_track);
+
+
+
 }
 
 
 
-void intervenir(String ordenu){
+
+/*bool intervenir(String ordenu,bool rep){
 
 	   
 	    if(ordenu == "pausar"){
@@ -196,11 +193,13 @@ void intervenir(String ordenu){
 
 	    if(ordenu == "parar"){
 	    	MP3player.stopTrack();
+	    	rep = false;
 	    }
 
 	    if(ordenu == "continuar"){
 	    	MP3player.resumeMusic();
 	    }
-	}
+	    return rep;
+	}*/
 
 
